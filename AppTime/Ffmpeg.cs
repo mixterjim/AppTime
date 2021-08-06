@@ -73,7 +73,9 @@ namespace AppTime
 
             var tempfile = Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + ".tmp");
 
+            // NOTE: libx264 is licensed under the GPL
             var args = $@"-loglevel quiet -f image2pipe -r {rate} -i - -vcodec libx264 -crf {crf} -f matroska -y ""{tempfile}""";
+            // var args = $@"-loglevel quiet -f image2pipe -r {rate} -i - -vcodec mpeg4 -qscale:v {1-31} -f matroska -y ""{tempfile}""";
             var info = new ProcessStartInfo(@"ffmpeg\ffmpeg.exe", args)
             {
                 RedirectStandardOutput = true,

@@ -97,6 +97,7 @@
   <ItemGroup>
     <Compile Include="InitDB.cs" />
     <Compile Include="Ffmpeg.cs" />
+    <Compile Include="UserStatus.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Controller.cs" />

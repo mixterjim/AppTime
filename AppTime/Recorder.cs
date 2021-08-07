@@ -240,14 +240,32 @@ namespace AppTime
             while (true)
             {
                 var now = DateTime.Now; 
-                var hwnd = WinApi.GetForegroundWindow();
-                var text = new StringBuilder(255);
-                WinApi.GetWindowText(hwnd, text, 255);
-                var winText = text.ToString();
-                WinApi.GetWindowThreadProcessId(hwnd, out var processid);
+                var processid = 0;  // System Idle process Pid is 0
+                var winText = Process.GetProcessById(processid).ProcessName;
+                uint vLastInputTime = UserStatus.GetLastInputTime();
+                uint idleSeconds = Settings.Default.IdleSeconds;
+                bool isIdle;
+                if (vLastInputTime < idleSeconds)
+                {
+                    var hwnd = WinApi.GetForegroundWindow();
+                    var text = new StringBuilder(255);
+                    WinApi.GetWindowText(hwnd, text, 255);
+                    winText = text.ToString();
+                    WinApi.GetWindowThreadProcessId(hwnd, out processid);
+                    isIdle = false;
+                }
+                else
+                {
+                    isIdle = !Settings.Default.IdleRecord;
+                    //    // Idle statistics to the Apptime
+                    //    winText = Process.GetCurrentProcess().ProcessName;
+                    //    processid = Process.GetCurrentProcess().Id;
+                }
+
                 var process = GetProcess(processid);
                 var appname = process.ProcessName;
 
+                // update app end time
                 if (lastApp != null)
                 {
                     db.Execute(
@@ -257,18 +275,22 @@ namespace AppTime
                     );
                 }
 
+                // set app start time
                 if (lastApp == null || lastApp.AppProcess != appname || lastApp.WinText != winText)
                 {
-                   
+
                     var win = GetWin(process, winText);
                     lastApp = new App { WinId = win.id, AppProcess = appname, TimeStart = now, WinText = winText };
                     db.Execute(
                         "insert into [period](winid, timeStart, timeEnd) values(@v0, @v1, @v1)",
                         win.id, now
-                    ); 
+                    );
                 }
 
-                Screenshot(now);
+                if (!isIdle)
+                {
+                    Screenshot(now);
+                }
 
                 //等到下一个周期
                 var nextTime = now.AddMilliseconds(IntervalMs);

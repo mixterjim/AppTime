@@ -43,10 +43,14 @@
             this.btnAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.btnExit = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.cboImageQuality = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.chkAutoRun = new System.Windows.Forms.CheckBox();
-            this.cboImageQuality = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtIdleSeconds = new System.Windows.Forms.TextBox();
+            this.checkBoxIdleRecord = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.contextMenuStrip.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -160,6 +164,10 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.checkBoxIdleRecord);
+            this.groupBox1.Controls.Add(this.txtIdleSeconds);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.cboImageQuality);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label2);
@@ -170,6 +178,20 @@
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "记录屏幕";
+            // 
+            // cboImageQuality
+            // 
+            this.cboImageQuality.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboImageQuality.FormattingEnabled = true;
+            this.cboImageQuality.Items.AddRange(new object[] {
+            "记录最近30天",
+            "记录最近14天",
+            "无限制记录",
+            "不记录"});
+            this.cboImageQuality.Location = new System.Drawing.Point(98, 76);
+            this.cboImageQuality.Name = "cboImageQuality";
+            this.cboImageQuality.Size = new System.Drawing.Size(121, 20);
+            this.cboImageQuality.TabIndex = 20;
             // 
             // label4
             // 
@@ -199,19 +221,39 @@
             this.chkAutoRun.Text = "开机自动启动(&A)";
             this.chkAutoRun.UseVisualStyleBackColor = true;
             // 
-            // cboImageQuality
+            // label3
             // 
-            this.cboImageQuality.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboImageQuality.FormattingEnabled = true;
-            this.cboImageQuality.Items.AddRange(new object[] {
-            "记录最近30天",
-            "记录最近14天",
-            "无限制记录",
-            "不记录"});
-            this.cboImageQuality.Location = new System.Drawing.Point(98, 76);
-            this.cboImageQuality.Name = "cboImageQuality";
-            this.cboImageQuality.Size = new System.Drawing.Size(121, 20);
-            this.cboImageQuality.TabIndex = 20;
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(314, 36);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(89, 12);
+            this.label3.TabIndex = 21;
+            this.label3.Text = "离开时间（秒）";
+            // 
+            // txtIdleSeconds
+            // 
+            this.txtIdleSeconds.Location = new System.Drawing.Point(427, 32);
+            this.txtIdleSeconds.Name = "txtIdleSeconds";
+            this.txtIdleSeconds.Size = new System.Drawing.Size(79, 21);
+            this.txtIdleSeconds.TabIndex = 12;
+            // 
+            // checkBoxIdleRecord
+            // 
+            this.checkBoxIdleRecord.AutoSize = true;
+            this.checkBoxIdleRecord.Location = new System.Drawing.Point(427, 76);
+            this.checkBoxIdleRecord.Name = "checkBoxIdleRecord";
+            this.checkBoxIdleRecord.Size = new System.Drawing.Size(15, 14);
+            this.checkBoxIdleRecord.TabIndex = 23;
+            this.checkBoxIdleRecord.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(314, 79);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(89, 12);
+            this.label5.TabIndex = 22;
+            this.label5.Text = "记录离开时画面";
             // 
             // FrmMain
             // 
@@ -262,6 +304,10 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox chkAutoRun;
         private System.Windows.Forms.ComboBox cboImageQuality;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtIdleSeconds;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.CheckBox checkBoxIdleRecord;
     }
 }
 

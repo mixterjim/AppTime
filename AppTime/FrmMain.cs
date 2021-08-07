@@ -51,6 +51,7 @@ namespace AppTime
             };
             cboImageQuality.DisplayMember = "Text";
             cboImageQuality.ValueMember = "Value";
+
         }
 
         private void btnOpen_Click(object sender, EventArgs e)
@@ -98,6 +99,8 @@ namespace AppTime
             }
             Settings.Default.ImageQuality = (int) cboImageQuality.SelectedValue;
             Settings.Default.RecordScreenDays = (int)cboRecordScreen.SelectedValue;
+            Settings.Default.IdleRecord = checkBoxIdleRecord.Checked;
+            Settings.Default.IdleSeconds = uint.Parse(txtIdleSeconds.Text);
             Settings.Default.Save();
 
             using var reg = Registry.CurrentUser.CreateSubKey(regkey);
@@ -145,7 +148,9 @@ namespace AppTime
                     txtDataPath.Text = Settings.Default.DataPath;
                 }
                 cboRecordScreen.SelectedValue = Settings.Default.RecordScreenDays; 
-                cboImageQuality.SelectedValue = Settings.Default.ImageQuality; 
+                cboImageQuality.SelectedValue = Settings.Default.ImageQuality;
+                checkBoxIdleRecord.Checked = Settings.Default.IdleRecord;
+                txtIdleSeconds.Text = Settings.Default.IdleSeconds.ToString();
 
                 using var reg = Registry.CurrentUser.CreateSubKey(regkey);
                 chkAutoRun.Checked = (reg.GetValue(appname) as string) == Application.ExecutablePath;
@@ -156,7 +161,7 @@ namespace AppTime
 
         private void btnAbout_Click(object sender, EventArgs e)
         {
-            MessageBox.Show($"AppTime桌面时间管理\r\nV{Application.ProductVersion}\r\n\r\n联系作者：newdraw@hotmail.com", "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Build by MixterJim Copyright © 2021 V{Application.ProductVersion}\r\n\r\n联系作者：newdraw@hotmail.com \r\n\r\n项目地址：github.com/mixterjim/AppTime", $"{Application.ProductName}", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnDataPath_Click(object sender, EventArgs e)

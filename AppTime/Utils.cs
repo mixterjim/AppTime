@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace AppTime
 {
     static class Utils
     {
         public static T CheckTimeout<T>(Func<T> act, Func<Thread, T> whenTimeout, int timeoutMs, bool abortThread = true)
-        { 
+        {
 
 
             var isTimeout = true;
-            
+
 
             Exception ex = null;
             var t = new Thread(() =>
@@ -40,12 +36,7 @@ namespace AppTime
                 return whenTimeout(t);
             }
 
-            if (ex != null)
-            {
-                throw ex;
-            }
-            return default(T);
-
+            return ex != null ? throw ex : default;
         }
 
         public static Exception Try(Action act)

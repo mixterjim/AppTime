@@ -1,52 +1,47 @@
-﻿ 
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using static AppTime.Recorder;
 
 namespace AppTime
 {
     class Controller
     {
-        public WebServer Server =>Program.server;
-        public Recorder Recorder=>Program.recorder;
+        public WebServer Server => Program.server;
+        public Recorder Recorder => Program.recorder;
 
 
         #region basic
-    
-        int getColor(string str)
-        {
-            return str.GetHashCode(); 
-        } 
 
-        static Dictionary<long, int> appColors = new Dictionary<long, int>();
-
-        int getAppColor(long appId)
+        int GetColor(string str)
         {
-            if(!appColors.TryGetValue(appId, out var color))
-            { 
+            return str.GetHashCode();
+        }
+
+        static readonly Dictionary<long, int> appColors = new();
+
+        int GetAppColor(long appId)
+        {
+            if (!appColors.TryGetValue(appId, out var color))
+            {
                 var text = db.ExecuteValue<string>($"select text from app where id={appId}");
                 lock (appColors)
                 {
-                    color = appColors[appId] = getColor(text);
+                    color = appColors[appId] = GetColor(text);
                 }
             }
             return color;
         }
 
-        static Dictionary<long, int> tagColors = new Dictionary<long, int>();
-        int getTagColor(long tagId)
+        static readonly Dictionary<long, int> tagColors = new();
+        int GetTagColor(long tagId)
         {
             if (!tagColors.TryGetValue(tagId, out var color))
             {
@@ -57,14 +52,14 @@ namespace AppTime
                 else
                 {
                     var text = db.ExecuteValue<string>($"select text from tag where id={tagId}");
-                    color = tagColors[tagId] = getColor(text);
+                    color = tagColors[tagId] = GetColor(text);
                 }
             }
             return color;
         }
 
 
-        public unsafe byte[] getPeriodBar(DateTime timefrom, DateTime timeto, string view, int width)
+        public unsafe byte[] GetPeriodBar(DateTime timefrom, DateTime timeto, string view, int width)
         {
             if (width <= 0 || width > 8000)
             {
@@ -115,7 +110,7 @@ order by p.timeStart
             }
 
             //绘制PeriodBar，直接写内存比gdi+快
-            var imgdata = new int[width]; 
+            var imgdata = new int[width];
             foreach (var period in data)
             {
                 var from = Math.Max(0, (int)Math.Round((period.timeStart - timefrom).TotalSeconds / totalsecs * width));
@@ -123,10 +118,10 @@ order by p.timeStart
 
                 for (var x = from; x <= Math.Min(width - 1, to); x++)
                 {
-                    imgdata[x] = view == "app" ? (int)getAppColor(period.appId) : (int)getTagColor(period.tagId);
+                    imgdata[x] = view == "app" ? (int)GetAppColor(period.appId) : (int)GetTagColor(period.tagId);
                 }
             }
-             
+
             fixed (int* p = &imgdata[0])
             {
                 var ptr = new IntPtr(p);
@@ -138,7 +133,7 @@ order by p.timeStart
 
         }
 
-        public object getTree(DateTime timefrom, DateTime timeto, string view, long parentKey)
+        public object GetTree(DateTime timefrom, DateTime timeto, string view, long parentKey)
         {
             var result = new List<object>();
             var totalSeconds = (timeto - timefrom).TotalSeconds;
@@ -208,7 +203,7 @@ where
 group by win.id 
 order by days desc
 ",
-                timefrom, timeto, parentKey 
+                timefrom, timeto, parentKey
 );
 
                 foreach (var i in data)
@@ -309,7 +304,7 @@ order by days desc
 
             return result;
         }
- 
+
         /// <summary>
         /// 时间
         /// </summary>
@@ -342,9 +337,9 @@ order by days desc
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
-        public TimeInfo getTimeInfo(DateTime time)
+        public TimeInfo GetTimeInfo(DateTime time)
         {
-            
+
             var data = db.ExecuteDynamic(@" 
 SELECT timeStart, app.text appText, win.text winText, app.id appId
 from period
@@ -359,20 +354,20 @@ limit 1",
             {
                 return null;
             }
-              
+
             return new TimeInfo
             {
                 timeSrc = time,
                 timeStart = data.timeStart,
-                app = data.appText, 
-                title = data.winText, 
+                app = data.appText,
+                title = data.winText,
                 appId = data.appId
             };
         }
 
         static byte[] defaultIcon;
 
-        public byte[] getIcon(int appId, bool large)
+        public byte[] GetIcon(int appId, bool large)
         {
             var path = Recorder.GetIconPath(appId, large);
             if (File.Exists(path))
@@ -388,11 +383,11 @@ limit 1",
 
         static byte[] imageNone = null;
 
-        TimeSpan getTime(string file)
+        TimeSpan GetTime(string file)
         {
             return TimeSpan.ParseExact(Path.GetFileNameWithoutExtension(file), "hhmmss", CultureInfo.InvariantCulture);
         }
-         
+
 
         /// <summary>
         /// 查找不满足条件的最后一个元素
@@ -401,7 +396,7 @@ limit 1",
         /// <param name="items"></param>
         /// <param name="largerThenTarget"></param>
         /// <returns></returns>
-        T find<T>(IList<T> items, Func<T, bool> largerThenTarget)
+        T Find<T>(IList<T> items, Func<T, bool> largerThenTarget)
         {
             if (items.Count == 0)
             {
@@ -428,13 +423,13 @@ limit 1",
 
 
         static Thread lastThread;
-        static readonly object threadLock = new object();
+        static readonly object threadLock = new();
         /// <summary>
         /// 获取指定时间的截图
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
-        public byte[] getImage(TimeInfo info)
+        public byte[] GetImage(TimeInfo info)
         {
 
             if (imageNone == null)
@@ -463,11 +458,11 @@ limit 1",
                         buffers.Add(Recorder.buffer);
                     }
 
-                    var match = find(buffers, i => i.StartTime > info.timeSrc);
+                    var match = Find(buffers, i => i.StartTime > info.timeSrc);
                     if (match != null)
                     {
                         var time = info.timeSrc - match.StartTime;
-                        var frame = find(match.Frames, f => (match.StartTime + f.Time) > info.timeSrc);
+                        var frame = Find(match.Frames, f => (match.StartTime + f.Time) > info.timeSrc);
                         if (frame != null)
                         {
                             return frame.Data;
@@ -478,17 +473,17 @@ limit 1",
 
                 //从文件系统找 
                 {
-                    var path = Recorder.getFileName(info.timeSrc);
+                    var path = Recorder.GetFileName(info.timeSrc);
                     var needtime = info.timeSrc.TimeOfDay;
-                    var needtimetext = needtime.ToString("hhmmss"); 
-                    var match = (from f in Directory.GetFiles(Path.GetDirectoryName(path), "????????." + Recorder.ExName) 
-                                 where Path.GetFileNameWithoutExtension(f).CompareTo(needtimetext) < 0 
+                    var needtimetext = needtime.ToString("hhmmss");
+                    var match = (from f in Directory.GetFiles(Path.GetDirectoryName(path), "????????." + Recorder.ExName)
+                                 where Path.GetFileNameWithoutExtension(f).CompareTo(needtimetext) < 0
                                  orderby f
-                                 select f).LastOrDefault(); 
+                                 select f).LastOrDefault();
                     if (match != null)
-                    { 
-                        var time = needtime - getTime(match);
-                        var data = Ffmpeg.Snapshot(match, time); 
+                    {
+                        var time = needtime - GetTime(match);
+                        var data = Ffmpeg.Snapshot(match, time);
                         if (data != null && data.Length > 0)
                         {
                             return data;
@@ -510,29 +505,29 @@ limit 1",
 
         private long nextTagId = 0;
         private long NextTagId()
-        { 
+        {
             if (nextTagId == 0)
             {
                 nextTagId = db.ExecuteValue<long>("select ifnull(max(id), 0) + 1 from tag");
             }
             return nextTagId++;
         }
-          
-        public bool existsTag(string text)
-        { 
-            return db.ExecuteValue< bool>(
-                "select exists(select * from tag where text = @text)", 
+
+        public bool ExistsTag(string text)
+        {
+            return db.ExecuteValue<bool>(
+                "select exists(select * from tag where text = @text)",
                 new SQLiteParameter("text", text)
             );
         }
 
-        public bool addTag(string text)
+        public bool AddTag(string text)
         {
-            if(existsTag(text))
+            if (ExistsTag(text))
             {
                 return false;
             }
-            
+
             db.Execute(
                 "insert into tag (id, text) values(@id, @text)",
                 new SQLiteParameter("id", NextTagId()),
@@ -541,9 +536,9 @@ limit 1",
             return true;
         }
 
-        public void removeTag(int tagId)
+        public void RemoveTag(int tagId)
         {
-            
+
             db.Execute(
                 "delete from tag where id = @id",
                 new SQLiteParameter("id", tagId)
@@ -554,23 +549,23 @@ limit 1",
 
         }
 
-        public void clearAppTag(long appId)
+        public void ClearAppTag(long appId)
         {
             db.Execute("update app set tagid = 0 where id = @v0", appId);
         }
 
-        public void clearWinTag(long winId)
+        public void ClearWinTag(long winId)
         {
             db.Execute("update win set tagid = 0 where id = @v0", winId);
         }
 
-        public DataTable getTags()
-        { 
+        public DataTable GetTags()
+        {
             return db.ExecuteTable("select id, text from tag order by id");
         }
 
 
-        public bool isTagUsed(int tagId)
+        public bool IsTagUsed(int tagId)
         {
             return db.ExecuteValue<bool>(
                 @"select exists(
@@ -582,11 +577,11 @@ select * from win where tagId = @tagId
             );
         }
 
-        DB db = DB.Instance;
+        readonly DB db = DB.Instance;
 
-        public bool renameTag(long tagId, string newName)
+        public bool RenameTag(long tagId, string newName)
         {
-            if(existsTag(newName))
+            if (ExistsTag(newName))
             {
                 return false;
             }
@@ -600,7 +595,7 @@ select * from win where tagId = @tagId
             return true;
         }
 
-        public void tagApp(long appId, long tagId)
+        public void TagApp(long appId, long tagId)
         {
             db.Execute(
                 "update app set tagid = @tagId where id=@appId",
@@ -609,7 +604,7 @@ select * from win where tagId = @tagId
             );
         }
 
-        public void tagWin(long winId, long tagId)
+        public void TagWin(long winId, long tagId)
         {
             db.Execute(
                 "update win set tagid = @tagId where id=@winId",
@@ -617,7 +612,7 @@ select * from win where tagId = @tagId
                 new SQLiteParameter("tagId", tagId)
             );
         }
-         
+
         #endregion
     }
 }

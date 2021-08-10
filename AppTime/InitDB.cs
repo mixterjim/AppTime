@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AppTime
+﻿namespace AppTime
 {
     /**
      * 初始化数据库
      */
     class InitDB
     {
-        private DB db;
+        private readonly DB db;
 
         public InitDB()
         {

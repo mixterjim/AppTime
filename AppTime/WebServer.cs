@@ -2,11 +2,10 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text; 
+using System.Text;
 using System.Threading;
 using System.Web;
 using System.Windows.Forms;
@@ -14,18 +13,19 @@ using System.Windows.Forms;
 namespace AppTime
 {
     class WebServer
-    {  
+    {
         HttpListener listener;
         Thread thread;
         //public HttpListenerRequest Request;
         //public HttpListenerResponse Response;
         public string WebRootPath;
-        HashSet<string> defaultPage = new HashSet<string>(StringComparer.OrdinalIgnoreCase){
-                    "index.html",
-                    "index.htm",
-                    "default.html",
-                    "default.htm"
-                };
+        readonly HashSet<string> defaultPage = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "index.html",
+            "index.htm",
+            "default.html",
+            "default.htm"
+        };
 
         public void Start(int port, object controller, string webfolder = "web")
         {
@@ -50,7 +50,7 @@ namespace AppTime
                     var ctx = listener.GetContext();
                     //Debug.WriteLine($"Web Request：{ctx.Request.Url}");
                     //ThreadPool.QueueUserWorkItem（_ => processRequest(ctx, webfolder, controller));
-                    new Thread(() => processRequest(
+                    new Thread(() => ProcessRequest(
                         ctx,
                         webfolder,
                         controller)
@@ -66,9 +66,9 @@ namespace AppTime
         }
 
 
-        void processRequest(HttpListenerContext context, string webfolder, object controller)
+        void ProcessRequest(HttpListenerContext context, string webfolder, object controller)
         {
-            var request = context.Request; 
+            var request = context.Request;
             var file = webfolder + request.RawUrl.Replace("/", "\\");
             string query = "";
             var p = file.IndexOf("?");
@@ -104,7 +104,7 @@ namespace AppTime
                         {
                             args[i] = Convert.ChangeType(args[i], @params[i].ParameterType);
                         }
-                    } 
+                    }
 
                     var result = method.Invoke(controller, args);
                     if (result is byte[] bytes)
@@ -116,7 +116,7 @@ namespace AppTime
                         data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     data = Encoding.UTF8.GetBytes($"bad request: method:{Path.GetFileName(file)} query:{query}");
                 }
@@ -160,14 +160,14 @@ namespace AppTime
             {
                 output.Write(data, 0, data.Length);
             }
-            catch (HttpListenerException ex)
+            catch (HttpListenerException)
             {
 
             }
             output.Close();
         }
 
-         
+
         public void Stop()
         {
             thread.Abort();

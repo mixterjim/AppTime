@@ -1,14 +1,5 @@
-﻿ 
-using System;
-using System.Collections.Generic;
-using System.Data.OleDb;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace AppTime

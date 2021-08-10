@@ -152,7 +152,7 @@
                             <div class="text" :title="parent.text">
                                 <i v-if="!parent.expanded" class="fas fa-angle-right" @click="expand(parent)"></i>
                                 <i v-else class="fas fa-angle-down" @click="collapse(parent)"></i>
-                                <img :src="makeDataUrl('getIcon', [parent.appId, false])" v-if="parent.appId" />
+                                <img :src="makeDataUrl('GetIcon', [parent.appId, false])" v-if="parent.appId" />
                                 {{parent.text}}
                                 <span class="tag" v-if="parent.tagText" v-text="parent.tagText"></span>
                             </div>
@@ -350,7 +350,7 @@
             timeCursor = timeFrom.clone().add(event.offsetX / scale.width * totalsecs, "seconds");
         }
 
-        invoke("getTimeInfo", [timeCursor.format(format)], function (info) {
+        invoke("GetTimeInfo", [timeCursor.format(format)], function (info) {
             lastRequest = false;
             $('#info .time').text(timeCursor.format(format));
 
@@ -363,11 +363,11 @@
 
             $('#img').attr(
                 'src',
-                makeDataUrl('getImage', [info])
+                makeDataUrl('GetImage', [info])
             )
             showLoadingImage();
             $('#info .app').text(info.app);
-            $('#info .icon').attr('src', makeDataUrl('getIcon', [info.appId, true]))
+            $('#info .icon').attr('src', makeDataUrl('GetIcon', [info.appId, true]))
             $('#info img').show();
 
         });
@@ -396,10 +396,10 @@
         }
 
         if (mouseEnterItem.appId) {
-            invoke('clearAppTag', [mouseEnterItem.appId], refresh);
+            invoke('ClearAppTag', [mouseEnterItem.appId], refresh);
         }
         else if (mouseEnterItem.winId) {
-            invoke('clearWinTag', [mouseEnterItem.winId], refresh);
+            invoke('ClearWinTag', [mouseEnterItem.winId], refresh);
         }
     }
 
@@ -408,7 +408,7 @@
         //刷新时间轴
         var img = new Image();
         img.src = makeDataUrl(
-            'getPeriodBar',
+            'GetPeriodBar',
             [timeFrom.format(format), timeTo.format(format), currentView, bar.width()],
             { flag: new Date().getTime() }
         );
@@ -494,7 +494,7 @@
         });
          
         //刷新统计树
-        invoke('getTree', [timeFrom.format(format), timeTo.format(format), currentView, 0], function (data) {
+        invoke('GetTree', [timeFrom.format(format), timeTo.format(format), currentView, 0], function (data) {
 
             var oldparents = {};
             $.each(vueData.tree, (i, v) => {
@@ -508,7 +508,7 @@
                     if (v.expanded) {
                         v.children = old.children;
                         invoke(
-                            'getTree',
+                            'GetTree',
                             [timeFrom.format(format), timeTo.format(format), currentView, v.appId ? v.appId : v.tagId],
                             function (children) {
                                 v.children = children;
@@ -593,7 +593,7 @@
                 expand: function (parent) {
                     parent.expanded = true; 
                     invoke(
-                        'getTree',
+                        'GetTree',
                         [timeFrom.format(format), timeTo.format(format), currentView, parent.appId?parent.appId:parent.tagId],
                         function (data) {
                             parent.children = data;
@@ -676,7 +676,7 @@
                         if (newText == oldText) {
                             return;
                         }
-                        invoke('renameTag', [tagId, newText], function (success) {
+                        invoke('RenameTag', [tagId, newText], function (success) {
                             if (!success) {
                                 $.messager.alert('', '标签名已经存在，请换一个试试。', 'info');
                             }
@@ -689,16 +689,16 @@
                 $('.messager-input').val(oldText).focus();
             },
             removeTag: function (tagId) { 
-                invoke('isTagUsed', [tagId], function (isUsed) { 
+                invoke('IsTagUsed', [tagId], function (isUsed) { 
                     if (isUsed) {
                         $.messager.confirm(' ', '标签已经被使用，确认要删除吗?', function (r) {
                             if (r) {
-                                invoke('removeTag', [tagId], refreshTags);
+                                invoke('RemoveTag', [tagId], refreshTags);
                             }
                         }); 
                     }
                     else {
-                        invoke('removeTag', [tagId], refreshTags);
+                        invoke('RemoveTag', [tagId], refreshTags);
                     }
                 });
             }
@@ -711,7 +711,7 @@
 
     var menuTagAs;
     function refreshTags(callback) {
-        invoke('getTags', [], function (data) {
+        invoke('GetTags', [], function (data) {
             vueDataTags.tags = data;
 
             //移除原标记为
@@ -734,10 +734,10 @@
                     onclick: function () {
                         if (mouseEnterItem) {
                             if (mouseEnterItem.appId) {
-                                invoke('tagApp', [mouseEnterItem.appId, v.id], refresh);
+                                invoke('TagApp', [mouseEnterItem.appId, v.id], refresh);
                             }
                             else { 
-                                invoke('tagWin', [mouseEnterItem.winId, v.id], refresh);
+                                invoke('TagWin', [mouseEnterItem.winId, v.id], refresh);
                             }
                         } 
                     }
@@ -751,7 +751,7 @@
     function addTag() { 
         $.messager.prompt('', '请输入标签名', function (r) {
             if (r) { 
-                invoke('addTag', [r], function (success) {
+                invoke('AddTag', [r], function (success) {
                     if (!success) {
                         $.messager.alert('', '标签名已经存在，请换一个试试。', 'info');
                     }

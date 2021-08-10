@@ -1,5 +1,4 @@
-﻿
-using AppTime.Properties;
+﻿using AppTime.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,7 +12,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AppTime
@@ -32,11 +30,11 @@ namespace AppTime
         /// </summary>
         public int IntervalMs = 1000;
         public void Start()
-        { 
+        {
             new Thread(RecorderThreadProc) { IsBackground = true }.Start();
         }
 
-        class App
+        class LastApp
         {
             public string WinText;
             public string AppProcess;
@@ -52,7 +50,7 @@ namespace AppTime
 
         Dictionary<int, Process> processes;
         public Process GetProcess(int processID)
-        { 
+        {
             if (processes != null && processes.TryGetValue(processID, out var p))
             {
                 return p;
@@ -61,15 +59,15 @@ namespace AppTime
             processes = Process.GetProcesses().ToDictionary(p => p.Id);
             return processes[processID];
         }
-         
-        class app
+
+        class App
         {
             public long id;
             public string process;
-            public Dictionary<string, win> wins = new Dictionary<string, win>();
+            public Dictionary<string, Win> wins = new();
         }
 
-        class win
+        class Win
         {
             public long id;
             public string text;
@@ -86,22 +84,22 @@ namespace AppTime
                 | (uint)(largeIcon ? FileInfoFlags.SHGFI_LARGEICON : FileInfoFlags.SHGFI_SMALLICON)
             );
 
-            return Icon.FromHandle(shfi.hIcon);  
+            return Icon.FromHandle(shfi.hIcon);
         }
 
         void SaveIcon(Icon icon, string filename)
         {
             using var img = icon.ToBitmap();
             img.Save(filename);
-        } 
+        }
 
         public string GetIconPath(long appId, bool large)
         {
             return Path.Combine(IconPath, $"{appId}{(large ? "l" : "s")}.png");
         }
 
-        Dictionary<string, app> apps = new Dictionary<string, app>();
-        app GetApp(Process process)
+        readonly Dictionary<string, App> apps = new();
+        App GetApp(Process process)
         {
             var name = process.ProcessName;
             if (apps.TryGetValue(name, out var app))
@@ -113,7 +111,7 @@ namespace AppTime
                     @"select id from app where process = @process",
                     new SQLiteParameter("process", name)
             ).FirstOrDefault();
-             
+
             if (data == null)
             {
                 if (nextAppId == 0)
@@ -144,7 +142,7 @@ namespace AppTime
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     text = process.ProcessName;
-                } 
+                }
 
 
                 db.Execute(
@@ -152,14 +150,14 @@ namespace AppTime
                     new SQLiteParameter("id", nextAppId),
                     new SQLiteParameter("process", name),
                     new SQLiteParameter("text", text)
-                ); 
-                
-                app = new app { id = nextAppId, process = name };
+                );
+
+                app = new App { id = nextAppId, process = name };
                 nextAppId++;
             }
             else
             {
-                app = new app
+                app = new App
                 {
                     id = data.id,
                     process = name
@@ -180,7 +178,7 @@ namespace AppTime
                     using var icons = GetIcon(process.MainModule.FileName, false);
                     SaveIcon(icons, GetIconPath(app.id, false));
                 }
-                catch(Win32Exception)
+                catch (Win32Exception)
                 {
 
                 }
@@ -190,7 +188,7 @@ namespace AppTime
         }
 
         long nextWinId = 0;
-        win GetWin(Process process, string winText)
+        Win GetWin(Process process, string winText)
         {
             var app = GetApp(process);
             if (app.wins.TryGetValue(winText, out var win))
@@ -216,12 +214,12 @@ namespace AppTime
                     new SQLiteParameter("appId", app.id),
                     new SQLiteParameter("text", winText)
                 );
-                win = new win { id = nextWinId, text = winText };
+                win = new Win { id = nextWinId, text = winText };
                 nextWinId++;
             }
             else
             {
-                win = new win
+                win = new Win
                 {
                     id = data.id,
                     text = winText
@@ -232,14 +230,14 @@ namespace AppTime
             return win;
         }
 
-        DB db = DB.Instance;
+        readonly DB db = DB.Instance;
 
         public void RecorderThreadProc()
         {
-            App lastApp = null;
+            LastApp lastApp = null;
             while (true)
             {
-                var now = DateTime.Now; 
+                var now = DateTime.Now;
                 var processid = 0;  // System Idle process Pid is 0
                 var winText = Process.GetProcessById(processid).ProcessName;
                 uint vLastInputTime = UserStatus.GetLastInputTime();
@@ -280,7 +278,7 @@ namespace AppTime
                 {
 
                     var win = GetWin(process, winText);
-                    lastApp = new App { WinId = win.id, AppProcess = appname, TimeStart = now, WinText = winText };
+                    lastApp = new LastApp { WinId = win.id, AppProcess = appname, TimeStart = now, WinText = winText };
                     db.Execute(
                         "insert into [period](winid, timeStart, timeEnd) values(@v0, @v1, @v1)",
                         win.id, now
@@ -295,18 +293,19 @@ namespace AppTime
                 //等到下一个周期
                 var nextTime = now.AddMilliseconds(IntervalMs);
                 now = DateTime.Now;
-                if(nextTime > now)
+                if (nextTime > now)
                 {
                     Thread.Sleep(nextTime - now);
-                } 
+                }
             }
         }
-         
+
 
         string DataPath => string.IsNullOrWhiteSpace(Settings.Default.DataPath) ? Application.StartupPath : Settings.Default.DataPath;
         public string ScreenPath => Path.Combine(DataPath, "images");
         public string IconPath => Path.Combine(DataPath, "icons");
-        ImageCodecInfo jpgcodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.MimeType == "image/jpeg");
+
+        readonly ImageCodecInfo jpgcodec = ImageCodecInfo.GetImageDecoders().First(codec => codec.MimeType == "image/jpeg");
 
         ///// <summary>
         ///// 获取图片文件路径
@@ -321,7 +320,7 @@ namespace AppTime
         //    return Path.Combine(folder, $"{filename}.jpg");
         //}
 
-        public string getFileName(DateTime time)
+        public string GetFileName(DateTime time)
         {
             return Path.Combine(ScreenPath, $"{time:yyyyMMdd}", $"{time:HHmmss}." + Recorder.ExName);
         }
@@ -386,7 +385,7 @@ namespace AppTime
             {
                 flushing.Add(b);
             }
-            var path = getFileName(b.StartTime);
+            var path = GetFileName(b.StartTime);
             var folder = Path.GetDirectoryName(path);
             if (!Directory.Exists(folder))
             {
@@ -394,7 +393,7 @@ namespace AppTime
             }
             new Thread(() =>
             {
-                Ffmpeg.Save(getFileName(b.StartTime), b.Frames.ToArray());
+                Ffmpeg.Save(GetFileName(b.StartTime), b.Frames.ToArray());
                 lock (flushing)
                 {
                     flushing.Remove(b);
@@ -409,17 +408,17 @@ namespace AppTime
 
         public class MemoryBuffer
         {
-            public readonly DateTime StartTime; 
-            public readonly List<Frame> Frames = new List<Frame>();
+            public readonly DateTime StartTime;
+            public readonly List<Frame> Frames = new();
             public MemoryBuffer(DateTime startTime)
             {
-                StartTime = startTime; 
+                StartTime = startTime;
             }
-        } 
+        }
 
         public MemoryBuffer buffer;
 
-        public List<MemoryBuffer> flushing = new List<MemoryBuffer>(); 
+        public List<MemoryBuffer> flushing = new();
 
         Bitmap GetScreen()
         {
@@ -427,7 +426,7 @@ namespace AppTime
             var screen = Screen.FromHandle(WinApi.GetForegroundWindow());
             var result = new Bitmap(screen.Bounds.Width, screen.Bounds.Height);
             using var g = Graphics.FromImage(result);
-            retry:
+        retry:
             try
             {
                 g.CopyFromScreen(screen.Bounds.X, screen.Bounds.Y, 0, 0, screen.Bounds.Size);

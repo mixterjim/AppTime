@@ -2,24 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.IO.Pipes;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static AppTime.Recorder;
 
 namespace AppTime
 {
     class Ffmpeg
     {
 
-        static Process lastFfmpeg; 
+        static Process lastFfmpeg;
 
         public static void KillLastFfmpeg()
         {
@@ -87,10 +79,10 @@ namespace AppTime
             };
             var p = Process.Start(info);
             p.PriorityClass = ProcessPriorityClass.BelowNormal;
-             
+
             foreach (var i in images)
             {
-                p.StandardInput.BaseStream.Write(i.Data, 0, i.Data.Length); 
+                p.StandardInput.BaseStream.Write(i.Data, 0, i.Data.Length);
             }
             p.StandardInput.Close();
             p.WaitForExit();

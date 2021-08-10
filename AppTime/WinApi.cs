@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Text;
 
 public struct RECT
 {
@@ -1127,8 +1125,8 @@ public class WinApi
 
     public const uint DT_INTERNAL = 0x00001000;
     #endregion
-   
-   
+
+
     [DllImport("User32.dll", EntryPoint = "DestroyIcon")]
     public static extern int DestroyIcon(IntPtr hIcon);
 
@@ -1249,7 +1247,7 @@ CONST RECT *lpRect // screen coordinates
     public static extern uint GetProcessImageFileName(
     IntPtr hProcess,
     [Out] StringBuilder lpImageFileName,
-    [In] [MarshalAs(UnmanagedType.U4)] int nSize
+    [In][MarshalAs(UnmanagedType.U4)] int nSize
 );
 
     //Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String) As Long

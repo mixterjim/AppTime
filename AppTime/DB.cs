@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.OleDb;
 using System.Data.SQLite;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace AppTime
@@ -16,25 +13,24 @@ namespace AppTime
     class DB
     {
 
-        public readonly static DB Instance = new DB();
-
-        DbConnection conn;
-        DbProviderFactory factory = SQLiteFactory.Instance;
+        public readonly static DB Instance = new();
+        readonly DbConnection conn;
+        readonly DbProviderFactory factory = SQLiteFactory.Instance;
 
         public DB()
-        { 
+        {
             var connectionString = new SQLiteConnectionStringBuilder()
             {
-                 DataSource= Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "data.db")
-                 
+                DataSource = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "data.db")
+
             }.ToString();
-            conn =  new SQLiteConnection
+            conn = new SQLiteConnection
             {
                 ConnectionString = connectionString
-            }; 
+            };
         }
 
-        T execute<T>(Func<DbCommand, T> handler, string sql, params object[] args)
+        T Execute<T>(Func<DbCommand, T> handler, string sql, params object[] args)
         {
             lock (this)
             {
@@ -44,12 +40,12 @@ namespace AppTime
                 for (var i = 0; i < args.Length; i++)
                 {
                     var arg = args[i];
-                    if (!(arg is DbParameter param))
+                    if (arg is not DbParameter param)
                     {
                         param = factory.CreateParameter();
                         param.ParameterName = $"@v{i}";
                         param.Value = arg;
-                    } 
+                    }
                     cmd.Parameters.Add(param);
                 }
 
@@ -61,12 +57,12 @@ namespace AppTime
 
         public int Execute(string sql, params object[] args)
         {
-            return execute(cmd => cmd.ExecuteNonQuery(), sql, args) ;
+            return Execute(cmd => cmd.ExecuteNonQuery(), sql, args);
         }
 
         public List<object[]> ExecuteData(string sql, params object[] args)
         {
-            return execute(cmd =>
+            return Execute(cmd =>
             {
                 var result = new List<object[]>();
                 using var reader = cmd.ExecuteReader();
@@ -91,16 +87,16 @@ namespace AppTime
         {
             var data = ExecuteData(sql, args);
             var result = new T[data.Count];
-            for(var i = 0;i<data.Count;i++)
+            for (var i = 0; i < data.Count; i++)
             {
-                result[i] = (T)Convert.ChangeType(data[i][0], typeof(T)); 
+                result[i] = (T)Convert.ChangeType(data[i][0], typeof(T));
             }
             return result;
         }
 
         public DataTable ExecuteTable(string sql, params object[] args)
         {
-            return execute(cmd =>
+            return Execute(cmd =>
             {
                 using var adapter = factory.CreateDataAdapter();
                 adapter.SelectCommand = cmd;
@@ -112,16 +108,16 @@ namespace AppTime
 
         public IEnumerable<dynamic> ExecuteDynamic(string sql, params object[] args)
         {
-            return from r in ExecuteTable(sql, args).AsEnumerable() select new DynamicDataRow(r); 
+            return from r in ExecuteTable(sql, args).AsEnumerable() select new DynamicDataRow(r);
         }
 
 
     }
- 
+
 
     class DynamicDataRow : DynamicObject
     {
-        DataRow row;
+        readonly DataRow row;
         public DynamicDataRow(DataRow row)
         {
             this.row = row;
